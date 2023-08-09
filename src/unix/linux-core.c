@@ -198,7 +198,7 @@ int uv__io_check_fd(uv_loop_t* loop, int fd) {
 }
 
 
-void uv__io_poll(uv_loop_t* loop, int timeout) {
+void uv__io_poll(uv_loop_t* loop, int64_t timeout) {
   /* A bug in kernels < 2.6.37 makes timeouts larger than ~30 minutes
    * effectively infinite on 32 bits architectures.  To avoid blocking
    * indefinitely, we cap the timeout and poll again if necessary.
@@ -207,13 +207,13 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
    * the value of CONFIG_HZ.  The magic constant assumes CONFIG_HZ=1200,
    * that being the largest value I have seen in the wild (and only once.)
    */
-  static const int max_safe_timeout = 1789569;
+  static const int64_t max_safe_timeout = 1789569 * NSPERMS;
   static int no_epoll_pwait;
   static int no_epoll_wait;
   struct epoll_event events[1024];
   struct epoll_event* pe;
   struct epoll_event e;
-  int real_timeout;
+  int64_t real_timeout;
   QUEUE* q;
   uv__io_t* w;
   sigset_t sigset;
@@ -297,10 +297,14 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
       nfds = -1;
       errno = ENOSYS;
 #else
-      nfds = epoll_pwait(loop->backend_fd,
+      struct timespec timeout_ts;
+      timeout_ts.tv_sec = timeout / (NSPERMS * 1000);
+      timeout_ts.tv_nsec = timeout % (NSPERMS * 1000);
+
+      nfds = epoll_pwait2(loop->backend_fd,
                          events,
                          ARRAY_SIZE(events),
-                         timeout,
+                         timeout_ts,
                          &sigset);
 #endif
       if (nfds == -1 && errno == ENOSYS)
@@ -309,7 +313,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
       nfds = epoll_wait(loop->backend_fd,
                         events,
                         ARRAY_SIZE(events),
-                        timeout);
+                        timeout / NSPERMS);
       if (nfds == -1 && errno == ENOSYS)
         no_epoll_wait = 1;
     }
@@ -331,7 +335,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
         return;
 
       /* We may have been inside the system call for longer than |timeout|
-       * milliseconds so we need to update the timestamp to avoid drift.
+       * nanoseconds so we need to update the timestamp to avoid drift.
        */
       goto update_timeout;
     }
@@ -461,7 +465,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
 update_timeout:
     assert(timeout > 0);
 
-    real_timeout -= (loop->time - base) / 1e6;
+    real_timeout -= loop->time - base;
     if (real_timeout <= 0)
       return;
 

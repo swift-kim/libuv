@@ -60,6 +60,8 @@ extern int snprintf(char*, size_t, const char*, ...);
 #define STATIC_ASSERT(expr)                                                   \
   void uv__static_assert(int static_assert_failed[1 - 2 * !(expr)])
 
+static const uint64_t NSPERMS = 1e6;
+
 /* Handle flags. Some flags are specific to Windows or UNIX. */
 enum {
   /* Used by all handles. */
@@ -197,7 +199,7 @@ void uv__fs_scandir_cleanup(uv_fs_t* req);
 void uv__fs_readdir_cleanup(uv_fs_t* req);
 uv_dirent_type_t uv__fs_get_dirent_type(uv__dirent_t* dent);
 
-int uv__next_timeout(const uv_loop_t* loop);
+int64_t uv__next_timeout(const uv_loop_t* loop);
 void uv__run_timers(uv_loop_t* loop);
 void uv__timer_close(uv_timer_t* handle);
 

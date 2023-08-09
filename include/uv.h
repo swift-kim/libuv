@@ -301,7 +301,7 @@ UV_EXTERN void uv_update_time(uv_loop_t*);
 UV_EXTERN uint64_t uv_now(const uv_loop_t*);
 
 UV_EXTERN int uv_backend_fd(const uv_loop_t*);
-UV_EXTERN int uv_backend_timeout(const uv_loop_t*);
+UV_EXTERN int64_t uv_backend_timeout(const uv_loop_t*);
 
 typedef void (*uv_alloc_cb)(uv_handle_t* handle,
                             size_t suggested_size,

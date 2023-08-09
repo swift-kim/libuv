@@ -535,7 +535,7 @@ void uv_stop(uv_loop_t* loop) {
 
 
 uint64_t uv_now(const uv_loop_t* loop) {
-  return loop->time / 1e6;
+  return loop->time / NSPERMS;
 }
 
 
