@@ -461,7 +461,7 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
 update_timeout:
     assert(timeout > 0);
 
-    real_timeout -= (loop->time - base);
+    real_timeout -= (loop->time - base) / 1e6;
     if (real_timeout <= 0)
       return;
 
