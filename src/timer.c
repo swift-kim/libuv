@@ -75,8 +75,8 @@ int uv_timer_start(uv_timer_t* handle,
   if (uv__is_active(handle))
     uv_timer_stop(handle);
 
-  clamped_timeout = handle->loop->time + timeout;
-  if (clamped_timeout < timeout)
+  clamped_timeout = handle->loop->time + (timeout * NSPERMS);
+  if (clamped_timeout < timeout * NSPERMS)
     clamped_timeout = (uint64_t) -1;
 
   handle->timer_cb = cb;
@@ -143,10 +143,11 @@ int uv__next_timeout(const uv_loop_t* loop) {
   if (handle->timeout <= loop->time)
     return 0;
 
-  diff = handle->timeout - loop->time;
+  diff = (handle->timeout - loop->time) / NSPERMS;
   if (diff > INT_MAX)
     diff = INT_MAX;
 
+  // FIXME: The timeout should be in nanoseconds.
   return (int) diff;
 }
 

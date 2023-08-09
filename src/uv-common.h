@@ -60,6 +60,8 @@ extern int snprintf(char*, size_t, const char*, ...);
 #define STATIC_ASSERT(expr)                                                   \
   void uv__static_assert(int static_assert_failed[1 - 2 * !(expr)])
 
+#define NSPERMS ((uint64_t) 1e6)
+
 /* Handle flags. Some flags are specific to Windows or UNIX. */
 enum {
   /* Used by all handles. */
