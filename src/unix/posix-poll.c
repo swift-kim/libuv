@@ -33,6 +33,9 @@
 #include <errno.h>
 #include <unistd.h>
 
+#undef NANOSEC
+#define NANOSEC ((uint64_t) 1e9)
+
 int uv__platform_loop_init(uv_loop_t* loop) {
   loop->poll_fds = NULL;
   loop->poll_fds_used = 0;
@@ -131,7 +134,7 @@ static void uv__pollfds_del(uv_loop_t* loop, int fd) {
 }
 
 
-void uv__io_poll(uv_loop_t* loop, int timeout) {
+void uv__io_poll(uv_loop_t* loop, int64_t timeout) {
   sigset_t* pset;
   sigset_t set;
   uint64_t time_base;
@@ -185,7 +188,12 @@ void uv__io_poll(uv_loop_t* loop, int timeout) {
     if (pset != NULL)
       if (pthread_sigmask(SIG_BLOCK, pset, NULL))
         abort();
-    nfds = poll(loop->poll_fds, (nfds_t)loop->poll_fds_used, timeout);
+
+    struct timespec ts;
+    ts.tv_sec = timeout / NANOSEC;
+    ts.tv_nsec = timeout % NANOSEC;
+
+    nfds = ppoll(loop->poll_fds, (nfds_t)loop->poll_fds_used, &ts, NULL);
     if (pset != NULL)
       if (pthread_sigmask(SIG_UNBLOCK, pset, NULL))
         abort();

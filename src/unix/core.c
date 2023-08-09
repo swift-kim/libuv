@@ -326,7 +326,7 @@ int uv_backend_fd(const uv_loop_t* loop) {
 }
 
 
-int uv_backend_timeout(const uv_loop_t* loop) {
+int64_t uv_backend_timeout(const uv_loop_t* loop) {
   if (loop->stop_flag != 0)
     return 0;
 
@@ -359,7 +359,7 @@ int uv_loop_alive(const uv_loop_t* loop) {
 
 
 int uv_run(uv_loop_t* loop, uv_run_mode mode) {
-  int timeout;
+  int64_t timeout;
   int r;
   int ran_pending;
 

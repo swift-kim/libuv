@@ -206,9 +206,10 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   list(APPEND uv_defines _GNU_SOURCE _POSIX_C_SOURCE=200112)
   list(APPEND uv_libraries dl rt)
   list(APPEND uv_sources
-       src/unix/linux-core.c
-       src/unix/linux-inotify.c
        src/unix/linux-syscalls.c
+       src/unix/no-fsevents.c
+       src/unix/posix-hrtime.c
+       src/unix/posix-poll.c
        src/unix/procfs-exepath.c
        src/unix/random-getrandom.c
        src/unix/random-sysctl-linux.c

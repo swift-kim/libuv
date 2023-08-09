@@ -130,10 +130,9 @@ uint64_t uv_timer_get_repeat(const uv_timer_t* handle) {
 }
 
 
-int uv__next_timeout(const uv_loop_t* loop) {
+int64_t uv__next_timeout(const uv_loop_t* loop) {
   const struct heap_node* heap_node;
   const uv_timer_t* handle;
-  uint64_t diff;
 
   heap_node = heap_min(timer_heap(loop));
   if (heap_node == NULL)
@@ -143,12 +142,7 @@ int uv__next_timeout(const uv_loop_t* loop) {
   if (handle->timeout <= loop->time)
     return 0;
 
-  diff = (handle->timeout - loop->time) / NSPERMS;
-  if (diff > INT_MAX)
-    diff = INT_MAX;
-
-  // FIXME: The timeout should be in nanoseconds.
-  return (int) diff;
+  return handle->timeout - loop->time;
 }
 
 
